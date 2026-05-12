@@ -68,8 +68,8 @@ class TripayGateway extends BaseGateway {
     }
   }
 
-  verifySignature(payload, receivedSignature) {
-    const privateKey = config.tripay.privateKey;
+  async verifySignature(payload, receivedSignature) {
+    const { privateKey } = await this._getKeys();
     const jsonStr = JSON.stringify(payload);
     const calculated = crypto
       .createHmac('sha256', privateKey)

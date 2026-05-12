@@ -70,9 +70,9 @@ async function createOrder(req, res) {
       return res.status(404).json(result);
     }
 
-    const [[user]] = await conn.query('SELECT balance, max_active_orders FROM users WHERE id = ? FOR UPDATE', [userId]);
+    const [[userCheck]] = await conn.query('SELECT balance, max_active_orders FROM users WHERE id = ?', [userId]);
     const sellPrice = parseFloat(pricing.sell_price);
-    if (parseFloat(user.balance) < sellPrice) {
+    if (parseFloat(userCheck.balance) < sellPrice) {
       conn.release();
       const result = { success: false, message: 'Saldo tidak mencukupi' };
       await logApiCall(req.reseller.api_key_id, userId, '/api/reseller/order', 'POST', req.body, 400, result, req.ip);
@@ -83,7 +83,7 @@ async function createOrder(req, res) {
       "SELECT COUNT(*) as activeCount FROM otp_orders WHERE user_id = ? AND status IN ('pending','waiting')",
       [userId]
     );
-    if (activeCount >= user.max_active_orders) {
+    if (activeCount >= userCheck.max_active_orders) {
       conn.release();
       const result = { success: false, message: 'Batas order aktif tercapai' };
       await logApiCall(req.reseller.api_key_id, userId, '/api/reseller/order', 'POST', req.body, 429, result, req.ip);
@@ -98,7 +98,17 @@ async function createOrder(req, res) {
     );
 
     await conn.beginTransaction();
+
+    const [[user]] = await conn.query('SELECT balance FROM users WHERE id = ? FOR UPDATE', [userId]);
     const balanceBefore = parseFloat(user.balance);
+    if (balanceBefore < sellPrice) {
+      await conn.rollback();
+      conn.release();
+      const result = { success: false, message: 'Saldo tidak mencukupi' };
+      await logApiCall(req.reseller.api_key_id, userId, '/api/reseller/order', 'POST', req.body, 400, result, req.ip);
+      return res.status(400).json(result);
+    }
+
     const balanceAfter = balanceBefore - sellPrice;
     await conn.query('UPDATE users SET balance = ? WHERE id = ?', [balanceAfter, userId]);
 

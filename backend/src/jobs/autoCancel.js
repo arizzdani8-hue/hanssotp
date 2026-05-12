@@ -31,10 +31,15 @@ function startAutoCancel() {
 
           await conn.beginTransaction();
 
-          await conn.query(
-            "UPDATE otp_orders SET status = 'expired', refunded = 1 WHERE id = ?",
+          const [updateResult] = await conn.query(
+            "UPDATE otp_orders SET status = 'expired', refunded = 1 WHERE id = ? AND status IN ('pending','waiting')",
             [order.id]
           );
+          if (updateResult.affectedRows === 0) {
+            await conn.rollback();
+            logger.info({ orderId: order.id }, 'Order already processed, skipping auto-cancel');
+            continue;
+          }
 
           const [[user]] = await conn.query('SELECT balance FROM users WHERE id = ? FOR UPDATE', [order.user_id]);
           const balanceBefore = parseFloat(user.balance);

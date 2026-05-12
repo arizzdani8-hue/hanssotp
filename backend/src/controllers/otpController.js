@@ -115,9 +115,9 @@ async function createOrder(req, res) {
       "SELECT COUNT(*) as activeCount FROM otp_orders WHERE user_id = ? AND status IN ('pending','waiting')",
       [userId]
     );
-    const [[user]] = await conn.query('SELECT * FROM users WHERE id = ? FOR UPDATE', [userId]);
+    const [[userCheck]] = await conn.query('SELECT max_active_orders, max_orders_per_minute, balance FROM users WHERE id = ?', [userId]);
 
-    if (activeCount >= user.max_active_orders) {
+    if (activeCount >= userCheck.max_active_orders) {
       conn.release();
       return res.status(429).json({ success: false, message: 'Batas order aktif tercapai' });
     }
@@ -126,7 +126,7 @@ async function createOrder(req, res) {
       "SELECT COUNT(*) as recentCount FROM otp_orders WHERE user_id = ? AND created_at > DATE_SUB(NOW(), INTERVAL 1 MINUTE)",
       [userId]
     );
-    if (recentCount >= user.max_orders_per_minute) {
+    if (recentCount >= userCheck.max_orders_per_minute) {
       conn.release();
       return res.status(429).json({ success: false, message: 'Terlalu banyak order per menit' });
     }
@@ -152,9 +152,8 @@ async function createOrder(req, res) {
 
     const pricing = pricings[0];
     const sellPrice = parseFloat(pricing.sell_price);
-    const userBalance = parseFloat(user.balance);
 
-    if (userBalance < sellPrice) {
+    if (parseFloat(userCheck.balance) < sellPrice) {
       conn.release();
       return res.status(400).json({ success: false, message: 'Saldo tidak mencukupi' });
     }
@@ -168,6 +167,14 @@ async function createOrder(req, res) {
     );
 
     await conn.beginTransaction();
+
+    const [[user]] = await conn.query('SELECT balance FROM users WHERE id = ? FOR UPDATE', [userId]);
+    const userBalance = parseFloat(user.balance);
+    if (userBalance < sellPrice) {
+      await conn.rollback();
+      conn.release();
+      return res.status(400).json({ success: false, message: 'Saldo tidak mencukupi' });
+    }
 
     const balanceBefore = userBalance;
     const balanceAfter = userBalance - sellPrice;

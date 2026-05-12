@@ -103,7 +103,7 @@ async function webhookTripay(req, res) {
       [JSON.stringify(req.body), signature, req.ip]
     );
 
-    const valid = gateway.verifySignature(req.body, signature);
+    const valid = await gateway.verifySignature(req.body, signature);
     if (!valid) {
       await pool.query(
         "UPDATE webhook_logs SET is_valid = 0, error_message = 'Invalid signature' WHERE gateway = 'tripay' ORDER BY id DESC LIMIT 1"
@@ -137,7 +137,7 @@ async function webhookQrispy(req, res) {
       [JSON.stringify(req.body), signature, req.ip]
     );
 
-    const valid = gateway.verifySignature(req.body, signature);
+    const valid = await gateway.verifySignature(req.body, signature);
     if (!valid) {
       await pool.query(
         "UPDATE webhook_logs SET is_valid = 0, error_message = 'Invalid signature' WHERE gateway = 'qrispy' ORDER BY id DESC LIMIT 1"

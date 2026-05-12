@@ -24,10 +24,11 @@ function startOtpPoller() {
           const result = await provider.getOrderStatus(order.provider_order_id);
 
           if (result.otpCode && result.status === 'received') {
-            await pool.query(
-              "UPDATE otp_orders SET status = 'received', otp_code = ?, completed_at = NOW() WHERE id = ?",
+            const [updateResult] = await pool.query(
+              "UPDATE otp_orders SET status = 'received', otp_code = ?, completed_at = NOW() WHERE id = ? AND status = 'waiting'",
               [result.otpCode, order.id]
             );
+            if (updateResult.affectedRows === 0) continue;
 
             await pool.query(
               "INSERT INTO otp_order_logs (order_id, action, details) VALUES (?, 'otp_received', ?)",

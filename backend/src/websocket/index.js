@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
+const { pool } = require('../config/database');
 const logger = require('../utils/logger');
 
 let io;
@@ -33,8 +34,17 @@ function init(server) {
     socket.join(`user:${userId}`);
     logger.info({ userId }, 'WebSocket client connected');
 
-    socket.on('subscribe:order', (orderId) => {
-      socket.join(`order:${orderId}`);
+    socket.on('subscribe:order', async (orderId) => {
+      try {
+        const [[order]] = await pool.query(
+          'SELECT id FROM otp_orders WHERE id = ? AND user_id = ?',
+          [orderId, userId]
+        );
+        if (!order) return;
+        socket.join(`order:${orderId}`);
+      } catch (err) {
+        logger.error({ err, orderId, userId }, 'subscribe:order verification failed');
+      }
     });
 
     socket.on('unsubscribe:order', (orderId) => {

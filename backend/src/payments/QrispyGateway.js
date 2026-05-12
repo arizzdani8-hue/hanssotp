@@ -50,8 +50,8 @@ class QrispyGateway extends BaseGateway {
     }
   }
 
-  verifySignature(payload, receivedSignature) {
-    const apiKey = config.qrispy.apiKey;
+  async verifySignature(payload, receivedSignature) {
+    const apiKey = await this._getKey();
     const jsonStr = JSON.stringify(payload);
     const calculated = crypto
       .createHmac('sha256', apiKey)
