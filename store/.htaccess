@@ -1,0 +1,67 @@
+# Digital Store - Apache .htaccess
+# Compatible with aaPanel Apache configuration
+
+# Prevent directory listing
+Options -Indexes
+
+# Enable URL rewriting
+RewriteEngine On
+
+# Force HTTPS (uncomment in production)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Protect sensitive files
+<FilesMatch "\.(sql|log|env|md|json|lock)$">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
+
+# Protect includes directory
+<IfModule mod_rewrite.c>
+    RewriteRule ^includes/ - [F,L]
+    RewriteRule ^logs/ - [F,L]
+</IfModule>
+
+# Protect uploads from PHP execution
+<Directory "uploads">
+    <FilesMatch "\.php$">
+        Order deny,allow
+        Deny from all
+    </FilesMatch>
+</Directory>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# PHP settings
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value max_execution_time 60
+    php_value max_input_time 60
+    php_value memory_limit 128M
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
+
+# Gzip compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json
+</IfModule>
