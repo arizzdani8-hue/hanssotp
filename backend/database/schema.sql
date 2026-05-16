@@ -219,18 +219,33 @@ CREATE TABLE otp_order_logs (
 ) ENGINE=InnoDB;
 
 -- ----------------------------
--- Payment Gateways
+-- Payment Settings (Pakasir)
 -- ----------------------------
-CREATE TABLE payment_gateways (
+CREATE TABLE payment_settings (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  slug VARCHAR(50) NOT NULL UNIQUE,
-  is_active TINYINT(1) NOT NULL DEFAULT 1,
-  config JSON DEFAULT NULL,
+  gateway_name VARCHAR(50) NOT NULL DEFAULT 'pakasir',
+  slug VARCHAR(100) DEFAULT NULL,
+  api_key VARCHAR(255) DEFAULT NULL,
+  callback_url VARCHAR(500) DEFAULT NULL,
+  mode ENUM('sandbox','production') NOT NULL DEFAULT 'sandbox',
   fee_percent DECIMAL(5,2) NOT NULL DEFAULT 0.00,
   fee_flat DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   min_amount DECIMAL(10,2) NOT NULL DEFAULT 10000.00,
   max_amount DECIMAL(10,2) NOT NULL DEFAULT 10000000.00,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ----------------------------
+-- Provider Settings (Hero SMS)
+-- ----------------------------
+CREATE TABLE provider_settings (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  provider_name VARCHAR(50) NOT NULL DEFAULT 'herosms',
+  api_key VARCHAR(255) DEFAULT NULL,
+  api_url VARCHAR(500) DEFAULT 'https://api.hero-sms.com',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -241,7 +256,7 @@ CREATE TABLE payment_gateways (
 CREATE TABLE deposits (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
-  gateway_id INT UNSIGNED DEFAULT NULL,
+  gateway VARCHAR(50) DEFAULT 'pakasir',
   reference VARCHAR(100) NOT NULL UNIQUE,
   merchant_ref VARCHAR(100) DEFAULT NULL,
   amount DECIMAL(15,2) NOT NULL,
@@ -261,7 +276,7 @@ CREATE TABLE deposits (
   INDEX idx_reference (reference),
   INDEX idx_merchant_ref (merchant_ref),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (gateway_id) REFERENCES payment_gateways(id) ON DELETE SET NULL
+  INDEX idx_gateway (gateway)
 ) ENGINE=InnoDB;
 
 -- ----------------------------
@@ -449,11 +464,11 @@ CREATE TABLE pricing_history (
 
 -- Default admin
 INSERT INTO admins (username, email, password, role) VALUES
-('admin', 'admin@hanssotp.com', '$2a$10$placeholder_hash_replace_on_setup', 'superadmin');
+('admin', 'admin@nyooapp.shop', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'superadmin');
 
 -- Default website settings
 INSERT INTO website_settings (`key`, value, type, description) VALUES
-('site_name', 'HanssOTP', 'text', 'Website name'),
+('site_name', 'NyooApp', 'text', 'Website name'),
 ('site_logo', '/images/logo.png', 'image', 'Website logo path'),
 ('site_description', 'Layanan Virtual Number & OTP Terpercaya', 'text', 'Website description'),
 ('dark_mode_default', 'false', 'boolean', 'Default dark mode'),
@@ -470,27 +485,26 @@ INSERT INTO website_settings (`key`, value, type, description) VALUES
 ('otp_poll_interval', '15', 'number', 'OTP polling interval in seconds'),
 ('max_active_orders_default', '5', 'number', 'Default max active orders per user'),
 ('max_orders_per_minute_default', '3', 'number', 'Default max orders per minute per user'),
-('api_key_5sim', '', 'text', '5sim.net API key'),
 ('api_key_herosms', '', 'text', 'Hero SMS API key'),
-('api_key_nokosmurah', '', 'text', 'Nokosmurah API key'),
-('api_key_tripay', '', 'text', 'Tripay API key'),
-('api_key_tripay_private', '', 'text', 'Tripay private/secret key'),
-('api_key_tripay_merchant', '', 'text', 'Tripay merchant code'),
-('api_key_qrispy', '', 'text', 'QRISPY API key'),
+('pakasir_slug', '', 'text', 'Pakasir project slug'),
+('pakasir_api_key', '', 'text', 'Pakasir API key'),
+('pakasir_mode', 'sandbox', 'text', 'Pakasir mode (sandbox/production)'),
+('pakasir_callback_url', 'https://nyooapp.shop/api/payment/pakasir/webhook', 'text', 'Pakasir callback URL'),
 ('auto_pricing_enabled', 'false', 'boolean', 'Enable auto pricing based on demand'),
 ('auto_pricing_demand_threshold', '100', 'number', 'Orders threshold for price increase'),
 ('auto_pricing_increase_percent', '5', 'number', 'Price increase percentage per threshold');
 
 -- Default OTP providers
 INSERT INTO otp_providers (name, slug, api_base_url, is_active, priority) VALUES
-('5sim.net', '5sim', 'https://5sim.net/v1', 1, 1),
-('Hero SMS', 'herosms', 'https://api.herosms.com', 1, 2),
-('Nokosmurah', 'nokosmurah', 'https://api.nokosmurah.com', 1, 3);
+('Hero SMS', 'herosms', 'https://api.hero-sms.com', 1, 1);
 
--- Default payment gateways
-INSERT INTO payment_gateways (name, slug, is_active, fee_percent, fee_flat, min_amount, max_amount) VALUES
-('Tripay', 'tripay', 1, 0.70, 0, 10000, 10000000),
-('QRISPY', 'qrispy', 1, 0.00, 0, 10000, 5000000);
+-- Default payment settings (Pakasir)
+INSERT INTO payment_settings (gateway_name, slug, api_key, callback_url, mode, fee_percent, fee_flat, min_amount, max_amount, is_active) VALUES
+('pakasir', '', '', 'https://nyooapp.shop/api/payment/pakasir/webhook', 'sandbox', 0.00, 0, 10000, 10000000, 1);
+
+-- Default provider settings (Hero SMS)
+INSERT INTO provider_settings (provider_name, api_key, api_url, is_active) VALUES
+('herosms', '', 'https://api.hero-sms.com', 1);
 
 -- Default countries
 INSERT INTO countries (name, code, phone_code, flag_emoji, is_active, sort_order) VALUES

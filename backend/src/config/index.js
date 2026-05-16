@@ -10,24 +10,15 @@ module.exports = {
   cors: {
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   },
-  tripay: {
-    apiKey: process.env.TRIPAY_API_KEY || '',
-    privateKey: process.env.TRIPAY_PRIVATE_KEY || '',
-    merchantCode: process.env.TRIPAY_MERCHANT_CODE || '',
-    apiUrl: process.env.TRIPAY_API_URL || 'https://tripay.co.id/api',
-  },
-  qrispy: {
-    apiKey: process.env.QRISPY_API_KEY || '',
-    apiUrl: process.env.QRISPY_API_URL || 'https://api.qrispy.com',
-  },
-  fivesim: {
-    apiKey: process.env.FIVESIM_API_KEY || '',
+  pakasir: {
+    slug: process.env.PAKASIR_SLUG || '',
+    apiKey: process.env.PAKASIR_API_KEY || '',
+    mode: process.env.PAKASIR_MODE || 'sandbox',
+    callbackUrl: process.env.PAKASIR_CALLBACK_URL || 'https://nyooapp.shop/api/payment/pakasir/webhook',
   },
   herosms: {
     apiKey: process.env.HEROSMS_API_KEY || '',
-  },
-  nokosmurah: {
-    apiKey: process.env.NOKOSMURAH_API_KEY || '',
+    apiUrl: process.env.HEROSMS_API_URL || 'https://api.hero-sms.com',
   },
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || '',

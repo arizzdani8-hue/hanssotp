@@ -23,7 +23,7 @@ export default function AdminLayout() {
     <div className="min-h-screen flex bg-gray-100 dark:bg-gray-900">
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 text-white transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static transition-transform duration-200`}>
         <div className="p-4 border-b border-gray-700">
-          <h1 className="text-lg font-bold">HanssOTP Admin</h1>
+          <h1 className="text-lg font-bold">NyooApp Admin</h1>
         </div>
         <nav className="p-4 space-y-1">
           {menuItems.map((item) => (

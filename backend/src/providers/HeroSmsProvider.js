@@ -3,8 +3,8 @@ const BaseProvider = require('./BaseProvider');
 const logger = require('../utils/logger');
 
 class HeroSmsProvider extends BaseProvider {
-  constructor(apiKey) {
-    super('herosms', apiKey, 'https://api.herosms.com');
+  constructor(apiKey, apiUrl) {
+    super('herosms', apiKey, apiUrl || 'https://api.hero-sms.com');
     this.client = axios.create({
       baseURL: this.baseUrl,
       headers: { 'Content-Type': 'application/json' },

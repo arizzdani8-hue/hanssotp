@@ -16,8 +16,12 @@ const settingsGroups = [
     keys: ['otp_expiry_minutes', 'otp_poll_interval', 'max_active_orders_default', 'max_orders_per_minute_default'],
   },
   {
-    title: 'API Keys',
-    keys: ['api_key_5sim', 'api_key_herosms', 'api_key_nokosmurah', 'api_key_tripay', 'api_key_tripay_private', 'api_key_tripay_merchant', 'api_key_qrispy'],
+    title: 'Payment - Pakasir',
+    keys: ['pakasir_slug', 'pakasir_api_key', 'pakasir_mode', 'pakasir_callback_url'],
+  },
+  {
+    title: 'OTP Provider - Hero SMS',
+    keys: ['herosms_api_key', 'herosms_api_url'],
   },
   {
     title: 'Telegram',

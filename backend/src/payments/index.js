@@ -1,9 +1,7 @@
-const TripayGateway = require('./TripayGateway');
-const QrispyGateway = require('./QrispyGateway');
+const PakasirGateway = require('./PakasirGateway');
 
 const gateways = {
-  tripay: new TripayGateway(),
-  qrispy: new QrispyGateway(),
+  pakasir: new PakasirGateway(),
 };
 
 function getGateway(slug) {

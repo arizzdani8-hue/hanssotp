@@ -12,7 +12,7 @@ const router = Router();
 router.use('/auth', authRoutes);
 router.use('/user', userRoutes);
 router.use('/deposits', depositRoutes);
-router.use('/webhooks', webhookRoutes);
+router.use('/payment', webhookRoutes);
 router.use('/otp', otpRoutes);
 router.use('/admin', adminRoutes);
 router.use('/reseller', resellerRoutes);

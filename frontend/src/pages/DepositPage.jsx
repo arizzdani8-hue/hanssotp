@@ -10,7 +10,6 @@ export default function DepositPage() {
   const { t, lang } = useLang();
   const { refreshUser } = useAuth();
   const [amount, setAmount] = useState('');
-  const [gateway, setGateway] = useState('tripay');
   const [loading, setLoading] = useState(false);
   const [deposit, setDeposit] = useState(null);
 
@@ -30,7 +29,7 @@ export default function DepositPage() {
     if (!amt || amt < 10000) { toast.error('Minimum deposit Rp 10.000'); return; }
     setLoading(true);
     try {
-      const { data } = await api.post('/deposits/create', { amount: amt, gateway });
+      const { data } = await api.post('/deposits/create', { amount: amt });
       setDeposit(data.data);
       toast.success('Deposit dibuat! Silakan scan QRIS.');
     } catch (err) {
@@ -73,13 +72,6 @@ export default function DepositPage() {
                   Rp {p.toLocaleString('id-ID')}
                 </button>
               ))}
-            </div>
-            <div>
-              <label className="label">Payment Gateway</label>
-              <select className="input-field" value={gateway} onChange={(e) => setGateway(e.target.value)}>
-                <option value="tripay">Tripay (QRIS)</option>
-                <option value="qrispy">QRISPY (QRIS)</option>
-              </select>
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? t('loading') : 'Buat Deposit'}

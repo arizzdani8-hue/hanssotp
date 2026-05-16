@@ -19,7 +19,7 @@ export default function MainLayout() {
       <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <Link to="/" className="text-xl font-bold text-primary-600">HanssOTP</Link>
+            <Link to="/" className="text-xl font-bold text-primary-600">NyooApp</Link>
             <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <>
@@ -87,7 +87,7 @@ export default function MainLayout() {
         <Outlet />
       </main>
       <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} HanssOTP. All rights reserved.
+        &copy; {new Date().getFullYear()} NyooApp. All rights reserved.
       </footer>
     </div>
   );
