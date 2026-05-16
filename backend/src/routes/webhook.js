@@ -3,6 +3,6 @@ const depositController = require('../controllers/depositController');
 
 const router = Router();
 
-router.post('/pakasir', depositController.webhookPakasir);
+router.post('/pakasir/webhook', depositController.webhookPakasir);
 
 module.exports = router;

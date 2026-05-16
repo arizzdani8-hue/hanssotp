@@ -21,7 +21,7 @@ const settingsGroups = [
   },
   {
     title: 'OTP Provider - Hero SMS',
-    keys: ['herosms_api_key', 'herosms_api_url'],
+    keys: ['api_key_herosms'],
   },
   {
     title: 'Telegram',
