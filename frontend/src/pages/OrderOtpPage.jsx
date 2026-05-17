@@ -128,30 +128,44 @@ export default function OrderOtpPage() {
   if (order) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">{t('order_title')}</h1>
-        <div className="card space-y-4">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-white">{t('order_title')}</h1>
+          <p className="text-gray-500 text-sm mt-1">Detail order nomor virtual</p>
+        </div>
+        <div className="card space-y-5">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Order #{order.id}</h3>
+            <h3 className="text-lg font-semibold text-white">Order #{order.id}</h3>
             <StatusBadge status={order.status} />
           </div>
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2">
-            <p><span className="text-gray-500">Nomor:</span> <span className="font-mono text-lg cursor-pointer" onClick={() => copyToClipboard(order.phone_number)}>{order.phone_number}</span></p>
+          <div className="bg-dark-900/50 rounded-xl p-5 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400 text-sm">Nomor</span>
+              <span className="font-mono text-lg text-white cursor-pointer hover:text-primary-400 transition-colors" onClick={() => copyToClipboard(order.phone_number)}>{order.phone_number}</span>
+            </div>
             {order.otp_code ? (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-500 mb-2">Kode OTP:</p>
-                <p className="text-4xl font-bold text-green-600 font-mono cursor-pointer" onClick={() => copyToClipboard(order.otp_code)}>{order.otp_code}</p>
-                <p className="text-xs text-gray-400 mt-1">Klik untuk menyalin</p>
+              <div className="text-center py-6 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                <p className="text-sm text-gray-400 mb-2">Kode OTP:</p>
+                <p className="text-5xl font-bold text-emerald-400 font-mono cursor-pointer hover:text-emerald-300 transition-colors" onClick={() => copyToClipboard(order.otp_code)}>{order.otp_code}</p>
+                <p className="text-xs text-gray-500 mt-2">Klik untuk menyalin</p>
               </div>
             ) : order.status === 'waiting' ? (
-              <div className="text-center py-4">
-                <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full mx-auto mb-2" />
-                <p className="text-gray-500">{t('waiting_otp')}</p>
+              <div className="text-center py-6">
+                <div className="animate-spin w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full mx-auto mb-3" />
+                <p className="text-gray-400">{t('waiting_otp')}</p>
               </div>
             ) : null}
-            <p><span className="text-gray-500">Harga:</span> Rp {Number(order.price).toLocaleString('id-ID')}</p>
-            {order.expires_at && <p><span className="text-gray-500">Expired:</span> {new Date(order.expires_at).toLocaleString('id-ID')}</p>}
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-400">Harga</span>
+              <span className="text-white font-semibold">Rp {Number(order.price).toLocaleString('id-ID')}</span>
+            </div>
+            {order.expires_at && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Expired</span>
+                <span className="text-gray-300">{new Date(order.expires_at).toLocaleString('id-ID')}</span>
+              </div>
+            )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             {order.status === 'waiting' && (
               <>
                 <button onClick={checkStatus} className="btn-secondary">Cek Status</button>
@@ -168,7 +182,10 @@ export default function OrderOtpPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">{t('order_title')}</h1>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-white">{t('order_title')}</h1>
+        <p className="text-gray-500 text-sm mt-1">Pilih layanan dan order nomor virtual</p>
+      </div>
       <div className="card space-y-4 mb-6">
         <div className="grid md:grid-cols-3 gap-4">
           <div>
@@ -197,17 +214,17 @@ export default function OrderOtpPage() {
 
       {pricing.length > 0 && (
         <div className="card">
-          <h3 className="font-semibold mb-4">Pilih Provider & Harga</h3>
+          <h3 className="font-semibold text-white mb-4">Pilih Provider & Harga</h3>
           <div className="space-y-3">
             {pricing.map((p) => (
-              <div key={p.id} className="flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div key={p.id} className="flex items-center justify-between py-4 px-5 bg-dark-900/50 rounded-xl border border-gray-800/50 hover:border-primary-500/30 transition-all">
                 <div>
-                  <p className="font-medium">{p.provider_name}</p>
+                  <p className="font-medium text-white">{p.provider_name}</p>
                   <p className="text-sm text-gray-500">{p.service_name} - {p.country_name}</p>
-                  {p.operator_name && <p className="text-xs text-gray-400">{p.operator_name}</p>}
+                  {p.operator_name && <p className="text-xs text-gray-600">{p.operator_name}</p>}
                 </div>
                 <div className="flex items-center gap-4">
-                  <p className="text-lg font-bold">Rp {Number(p.sell_price).toLocaleString('id-ID')}</p>
+                  <p className="text-lg font-bold text-primary-400">Rp {Number(p.sell_price).toLocaleString('id-ID')}</p>
                   <button onClick={() => createOrder(p)} disabled={loading} className="btn-primary text-sm">
                     {loading ? '...' : t('order_now')}
                   </button>
@@ -219,7 +236,7 @@ export default function OrderOtpPage() {
       )}
 
       {selectedCountry && selectedService && pricing.length === 0 && (
-        <div className="card text-center py-8">
+        <div className="card text-center py-10">
           <p className="text-gray-500">{t('no_data')}</p>
         </div>
       )}

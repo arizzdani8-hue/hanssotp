@@ -1,93 +1,109 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLang } from '../context/LangContext';
-import { HiMenu, HiX, HiMoon, HiSun, HiGlobe } from 'react-icons/hi';
+import { HiMenu, HiX, HiGlobe } from 'react-icons/hi';
 import { useState } from 'react';
 
 export default function MainLayout() {
   const { user, logout } = useAuth();
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { darkMode } = useTheme();
   const { t, lang, switchLang } = useLang();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isLanding = location.pathname === '/';
 
   const handleLogout = () => { logout(); navigate('/'); };
 
+  const navLinks = user ? [
+    { to: '/dashboard', label: t('nav_dashboard') },
+    { to: '/deposit', label: t('nav_deposit') },
+    { to: '/order', label: t('nav_order') },
+    { to: '/orders', label: t('nav_history') },
+    { to: '/transactions', label: t('nav_transactions') },
+    { to: '/profile', label: t('nav_profile') },
+  ] : [];
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+    <div className="min-h-screen flex flex-col bg-dark-950">
+      <nav className={`sticky top-0 z-50 transition-all duration-300 ${isLanding ? 'bg-transparent' : 'bg-dark-900/80 backdrop-blur-xl border-b border-gray-800/50'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <Link to="/" className="text-xl font-bold text-primary-600">NyooApp</Link>
-            <div className="hidden md:flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">N</span>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-primary-400 to-primary-300 bg-clip-text text-transparent">NyooApp</span>
+            </Link>
+            <div className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <Link key={link.to} to={link.to}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname === link.to ? 'bg-primary-600/20 text-primary-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                  {link.label}
+                </Link>
+              ))}
               {user ? (
                 <>
-                  <Link to="/dashboard" className="text-sm hover:text-primary-600">{t('nav_dashboard')}</Link>
-                  <Link to="/deposit" className="text-sm hover:text-primary-600">{t('nav_deposit')}</Link>
-                  <Link to="/order" className="text-sm hover:text-primary-600">{t('nav_order')}</Link>
-                  <Link to="/orders" className="text-sm hover:text-primary-600">{t('nav_history')}</Link>
-                  <Link to="/transactions" className="text-sm hover:text-primary-600">{t('nav_transactions')}</Link>
-                  <Link to="/reseller-api" className="text-sm hover:text-primary-600">{t('nav_api')}</Link>
-                  <Link to="/affiliate" className="text-sm hover:text-primary-600">{t('nav_affiliate')}</Link>
-                  <Link to="/profile" className="text-sm hover:text-primary-600">{t('nav_profile')}</Link>
-                  <span className="text-sm font-semibold text-green-600">Rp {Number(user.balance).toLocaleString('id-ID')}</span>
-                  <button onClick={handleLogout} className="text-sm text-red-500 hover:text-red-700">{t('nav_logout')}</button>
+                  <div className="ml-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <span className="text-sm font-semibold text-emerald-400">Rp {Number(user.balance).toLocaleString('id-ID')}</span>
+                  </div>
+                  <button onClick={handleLogout} className="ml-1 px-3 py-2 text-sm text-gray-400 hover:text-red-400 transition-colors">{t('nav_logout')}</button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" className="text-sm hover:text-primary-600">{t('nav_login')}</Link>
-                  <Link to="/register" className="btn-primary text-sm">{t('nav_register')}</Link>
+                  <Link to="/login" className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors">{t('nav_login')}</Link>
+                  <Link to="/register" className="btn-primary text-sm !py-2 !px-5">{t('nav_register')}</Link>
                 </>
               )}
-              <button onClick={toggleDarkMode} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                {darkMode ? <HiSun className="w-5 h-5" /> : <HiMoon className="w-5 h-5" />}
-              </button>
-              <button onClick={() => switchLang(lang === 'id' ? 'en' : 'id')} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+              <button onClick={() => switchLang(lang === 'id' ? 'en' : 'id')} className="ml-1 p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                 <HiGlobe className="w-5 h-5" />
               </button>
             </div>
-            <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2">
+            <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 text-gray-400">
               {menuOpen ? <HiX className="w-6 h-6" /> : <HiMenu className="w-6 h-6" />}
             </button>
           </div>
         </div>
         {menuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 pb-4 px-4 space-y-2">
+          <div className="md:hidden bg-dark-900/95 backdrop-blur-xl border-t border-gray-800/50 pb-4 px-4 space-y-1">
+            {navLinks.map((link) => (
+              <Link key={link.to} to={link.to} onClick={() => setMenuOpen(false)}
+                className={`block py-2.5 px-3 rounded-lg text-sm ${location.pathname === link.to ? 'bg-primary-600/20 text-primary-400' : 'text-gray-400'}`}>
+                {link.label}
+              </Link>
+            ))}
             {user ? (
               <>
-                <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_dashboard')}</Link>
-                <Link to="/deposit" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_deposit')}</Link>
-                <Link to="/order" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_order')}</Link>
-                <Link to="/orders" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_history')}</Link>
-                <Link to="/transactions" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_transactions')}</Link>
-                <Link to="/reseller-api" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_api')}</Link>
-                <Link to="/affiliate" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_affiliate')}</Link>
-                <Link to="/profile" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_profile')}</Link>
-                <button onClick={handleLogout} className="block py-2 text-sm text-red-500">{t('nav_logout')}</button>
+                <div className="px-3 py-2 text-sm text-emerald-400 font-semibold">Rp {Number(user.balance).toLocaleString('id-ID')}</div>
+                <button onClick={handleLogout} className="block py-2.5 px-3 text-sm text-red-400">{t('nav_logout')}</button>
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_login')}</Link>
-                <Link to="/register" onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{t('nav_register')}</Link>
+                <Link to="/login" onClick={() => setMenuOpen(false)} className="block py-2.5 px-3 text-sm text-gray-400">{t('nav_login')}</Link>
+                <Link to="/register" onClick={() => setMenuOpen(false)} className="block py-2.5 px-3 text-sm text-primary-400">{t('nav_register')}</Link>
               </>
             )}
-            <div className="flex gap-2 pt-2">
-              <button onClick={toggleDarkMode} className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                {darkMode ? <HiSun className="w-5 h-5" /> : <HiMoon className="w-5 h-5" />}
-              </button>
-              <button onClick={() => switchLang(lang === 'id' ? 'en' : 'id')} className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                <HiGlobe className="w-5 h-5" />
-              </button>
-            </div>
           </div>
         )}
       </nav>
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} NyooApp. All rights reserved.
+      <footer className="border-t border-gray-800/50 py-8 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-gradient-to-br from-primary-500 to-primary-700 rounded-md flex items-center justify-center">
+              <span className="text-white font-bold text-xs">N</span>
+            </div>
+            <span className="text-sm text-gray-500">&copy; {new Date().getFullYear()} NyooApp. All rights reserved.</span>
+          </div>
+          <div className="flex gap-6 text-sm text-gray-500">
+            <a href="#" className="hover:text-gray-300 transition-colors">Terms</a>
+            <a href="#" className="hover:text-gray-300 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-gray-300 transition-colors">Contact</a>
+          </div>
+        </div>
       </footer>
     </div>
   );

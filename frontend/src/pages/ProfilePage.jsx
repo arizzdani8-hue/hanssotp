@@ -33,20 +33,20 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Profil</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Profil</h1>
 
       <div className="card mb-6">
         <div className="space-y-3">
-          <div className="flex justify-between"><span className="text-gray-500">Username</span><span className="font-medium">{profile?.username}</span></div>
-          <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium">{profile?.email}</span></div>
-          <div className="flex justify-between"><span className="text-gray-500">Saldo</span><span className="font-bold text-green-600">Rp {Number(profile?.balance || 0).toLocaleString('id-ID')}</span></div>
-          <div className="flex justify-between"><span className="text-gray-500">Referral Code</span><span className="font-mono">{profile?.referral_code}</span></div>
-          <div className="flex justify-between"><span className="text-gray-500">Member Since</span><span>{new Date(profile?.created_at).toLocaleDateString('id-ID')}</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Username</span><span className="font-medium text-gray-200">{profile?.username}</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Email</span><span className="font-medium text-gray-200">{profile?.email}</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Saldo</span><span className="font-bold text-emerald-400">Rp {Number(profile?.balance || 0).toLocaleString('id-ID')}</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Referral Code</span><span className="font-mono text-primary-400">{profile?.referral_code}</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Member Since</span><span className="text-gray-300">{new Date(profile?.created_at).toLocaleDateString('id-ID')}</span></div>
         </div>
       </div>
 
       <div className="card">
-        <h3 className="font-semibold mb-4">Edit Profil</h3>
+        <h3 className="font-semibold text-white mb-4">Edit Profil</h3>
         <form onSubmit={handleUpdate} className="space-y-4">
           <div>
             <label className="label">Nomor Telepon</label>
