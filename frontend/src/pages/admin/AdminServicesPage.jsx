@@ -59,58 +59,58 @@ export default function AdminServicesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">OTP Services / Pricing</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">OTP Services / Pricing</h1>
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left py-3 px-2">ID</th>
-              <th className="text-left py-3 px-2">Country</th>
-              <th className="text-left py-3 px-2">Service</th>
-              <th className="text-left py-3 px-2">Provider</th>
-              <th className="text-left py-3 px-2">Cost</th>
-              <th className="text-left py-3 px-2">Markup %</th>
-              <th className="text-left py-3 px-2">Sell</th>
-              <th className="text-left py-3 px-2">Active</th>
-              <th className="text-left py-3 px-2">Aksi</th>
+            <tr className="border-b border-gray-800/50">
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">ID</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Country</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Service</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Provider</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Cost</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Markup %</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Sell</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Active</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
           <tbody>
             {services.map((s) => (
-              <tr key={s.id} className="border-b border-gray-100 dark:border-gray-700">
-                <td className="py-2 px-2">{s.id}</td>
-                <td className="py-2 px-2">{s.country_name}</td>
-                <td className="py-2 px-2">{s.service_name}</td>
-                <td className="py-2 px-2">{s.provider_name}</td>
-                <td className="py-2 px-2">
+              <tr key={s.id} className="border-b border-gray-800/50 hover:bg-white/[0.02] transition-colors">
+                <td className="py-3 px-2 text-gray-400">{s.id}</td>
+                <td className="py-3 px-2 text-gray-200">{s.country_name}</td>
+                <td className="py-3 px-2 text-gray-200">{s.service_name}</td>
+                <td className="py-3 px-2 text-gray-300">{s.provider_name}</td>
+                <td className="py-3 px-2 text-gray-200">
                   {editId === s.id ? (
                     <input type="number" className="input-field w-20 text-xs" value={editForm.cost_price}
                       onChange={(e) => setEditForm({ ...editForm, cost_price: e.target.value })} />
                   ) : `Rp ${Number(s.cost_price).toLocaleString('id-ID')}`}
                 </td>
-                <td className="py-2 px-2">
+                <td className="py-3 px-2 text-gray-200">
                   {editId === s.id ? (
                     <input type="number" className="input-field w-16 text-xs" value={editForm.markup_percent}
                       onChange={(e) => setEditForm({ ...editForm, markup_percent: e.target.value })} />
                   ) : `${s.markup_percent}%`}
                 </td>
-                <td className="py-2 px-2 font-semibold">Rp {Number(s.sell_price).toLocaleString('id-ID')}</td>
-                <td className="py-2 px-2">
+                <td className="py-3 px-2 font-semibold text-emerald-400">Rp {Number(s.sell_price).toLocaleString('id-ID')}</td>
+                <td className="py-3 px-2">
                   {editId === s.id ? (
                     <input type="checkbox" checked={editForm.is_active}
                       onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })} />
-                  ) : (s.is_active ? 'Yes' : 'No')}
+                  ) : (s.is_active ? <span className="text-emerald-400">Yes</span> : <span className="text-gray-500">No</span>)}
                 </td>
-                <td className="py-2 px-2 space-x-1">
+                <td className="py-3 px-2 space-x-1">
                   {editId === s.id ? (
                     <>
-                      <button onClick={saveEdit} className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">Save</button>
-                      <button onClick={() => setEditId(null)} className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">Cancel</button>
+                      <button onClick={saveEdit} className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-medium">Save</button>
+                      <button onClick={() => setEditId(null)} className="text-xs px-2.5 py-1 rounded-lg bg-gray-500/10 text-gray-400 font-medium">Cancel</button>
                     </>
                   ) : (
                     <>
-                      <button onClick={() => startEdit(s)} className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">Edit</button>
-                      <button onClick={() => deleteService(s.id)} className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">Delete</button>
+                      <button onClick={() => startEdit(s)} className="text-xs px-2.5 py-1 rounded-lg bg-primary-500/10 text-primary-400 font-medium">Edit</button>
+                      <button onClick={() => deleteService(s.id)} className="text-xs px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 font-medium">Delete</button>
                     </>
                   )}
                 </td>

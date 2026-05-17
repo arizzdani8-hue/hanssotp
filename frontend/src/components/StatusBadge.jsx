@@ -1,18 +1,18 @@
 const colors = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  waiting: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  received: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  cancelled: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
-  expired: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  refunded: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-  paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  pending: 'bg-amber-500/10 text-amber-400',
+  waiting: 'bg-blue-500/10 text-blue-400',
+  received: 'bg-emerald-500/10 text-emerald-400',
+  cancelled: 'bg-gray-500/10 text-gray-400',
+  expired: 'bg-red-500/10 text-red-400',
+  refunded: 'bg-purple-500/10 text-purple-400',
+  paid: 'bg-emerald-500/10 text-emerald-400',
+  failed: 'bg-red-500/10 text-red-400',
+  success: 'bg-emerald-500/10 text-emerald-400',
 };
 
 export default function StatusBadge({ status }) {
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[status] || colors.pending}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium ${colors[status] || colors.pending}`}>
       {status}
     </span>
   );

@@ -16,8 +16,12 @@ const settingsGroups = [
     keys: ['otp_expiry_minutes', 'otp_poll_interval', 'max_active_orders_default', 'max_orders_per_minute_default'],
   },
   {
-    title: 'API Keys',
-    keys: ['api_key_5sim', 'api_key_herosms', 'api_key_nokosmurah', 'api_key_tripay', 'api_key_tripay_private', 'api_key_tripay_merchant', 'api_key_qrispy'],
+    title: 'Payment - Pakasir',
+    keys: ['pakasir_slug', 'pakasir_api_key', 'pakasir_mode', 'pakasir_callback_url'],
+  },
+  {
+    title: 'OTP Provider - Hero SMS',
+    keys: ['api_key_herosms'],
   },
   {
     title: 'Telegram',
@@ -65,7 +69,7 @@ export default function AdminSettingsPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Settings</h1>
+        <h1 className="text-2xl font-bold text-white">Settings</h1>
         <button onClick={handleSave} disabled={saving} className="btn-primary">
           {saving ? 'Saving...' : 'Save All'}
         </button>
@@ -74,7 +78,7 @@ export default function AdminSettingsPage() {
       <div className="space-y-6">
         {settingsGroups.map((group) => (
           <div key={group.title} className="card">
-            <h3 className="text-lg font-semibold mb-4">{group.title}</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">{group.title}</h3>
             <div className="space-y-3">
               {group.keys.map((key) => {
                 const value = settings[key];
@@ -83,7 +87,7 @@ export default function AdminSettingsPage() {
 
                 return (
                   <div key={key} className="flex items-center gap-4">
-                    <label className="w-48 text-sm font-medium text-gray-600 dark:text-gray-400 flex-shrink-0">
+                    <label className="w-48 text-sm font-medium text-gray-400 flex-shrink-0">
                       {key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                     </label>
                     {isBoolean ? (

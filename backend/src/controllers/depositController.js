@@ -5,11 +5,11 @@ const { generateReference } = require('../utils/helpers');
 const activityService = require('../services/activityService');
 const affiliateService = require('../services/affiliateService');
 const telegramService = require('../services/telegramService');
+const { emitDepositUpdate, emitBalanceUpdate } = require('../websocket');
 const logger = require('../utils/logger');
 
 const createDepositSchema = z.object({
   amount: z.number().int().min(10000).max(10000000),
-  gateway: z.enum(['tripay', 'qrispy']).default('tripay'),
 });
 
 async function createDeposit(req, res) {
@@ -18,25 +18,23 @@ async function createDeposit(req, res) {
     const userId = req.user.id;
     const reference = generateReference('DEP');
 
-    const [[gateway]] = await pool.query(
-      'SELECT * FROM payment_gateways WHERE slug = ? AND is_active = 1',
-      [data.gateway]
+    const [[paymentSettings]] = await pool.query(
+      "SELECT * FROM payment_settings WHERE gateway_name = 'pakasir' AND is_active = 1 LIMIT 1"
     );
-    if (!gateway) {
-      return res.status(400).json({ success: false, message: 'Payment gateway tidak tersedia' });
-    }
 
-    const fee = Math.ceil(data.amount * gateway.fee_percent / 100) + parseFloat(gateway.fee_flat);
+    const feePercent = paymentSettings ? parseFloat(paymentSettings.fee_percent) : 0;
+    const feeFlat = paymentSettings ? parseFloat(paymentSettings.fee_flat) : 0;
+    const fee = Math.ceil(data.amount * feePercent / 100) + feeFlat;
     const totalAmount = data.amount + fee;
 
-    const paymentGateway = getGateway(data.gateway);
-    const payment = await paymentGateway.createPayment(totalAmount, reference, 'Deposit Saldo HanssOTP');
+    const gateway = getGateway('pakasir');
+    const payment = await gateway.createPayment(totalAmount, reference, 'Deposit Saldo NyooApp');
 
     const [result] = await pool.query(
-      `INSERT INTO deposits (user_id, gateway_id, reference, merchant_ref, amount, fee, total_amount, status, payment_method, qr_url, checkout_url, expired_at, gateway_response)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'QRIS', ?, ?, ?, ?)`,
+      `INSERT INTO deposits (user_id, gateway, reference, merchant_ref, amount, fee, total_amount, status, payment_method, qr_url, checkout_url, expired_at, gateway_response)
+       VALUES (?, 'pakasir', ?, ?, ?, ?, ?, 'pending', 'QRIS', ?, ?, ?, ?)`,
       [
-        userId, gateway.id, reference, payment.merchantRef || reference,
+        userId, reference, payment.merchantRef || reference,
         data.amount, fee, totalAmount,
         payment.qrUrl, payment.checkoutUrl,
         payment.expiresAt, JSON.stringify(payment.rawResponse || {}),
@@ -49,7 +47,7 @@ async function createDeposit(req, res) {
       action: 'create_deposit',
       targetType: 'deposit',
       targetId: result.insertId,
-      details: { amount: data.amount, gateway: data.gateway },
+      details: { amount: data.amount, gateway: 'pakasir' },
       ipAddress: req.ip,
     });
 
@@ -72,7 +70,7 @@ async function createDeposit(req, res) {
       return res.status(400).json({ success: false, message: 'Validation error', errors: err.errors });
     }
     logger.error({ err }, 'Create deposit error');
-    res.status(500).json({ success: false, message: 'Gagal membuat deposit' });
+    res.status(500).json({ success: false, message: err.message || 'Gagal membuat deposit' });
   }
 }
 
@@ -92,62 +90,49 @@ async function getDeposit(req, res) {
   }
 }
 
-async function webhookTripay(req, res) {
+async function getDepositHistory(req, res) {
   try {
-    const gateway = getGateway('tripay');
-    const signature = req.headers['x-callback-signature'];
+    const userId = req.user.id;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+    const offset = (page - 1) * limit;
 
-    await pool.query(
-      `INSERT INTO webhook_logs (gateway, event_type, payload, signature, ip_address)
-       VALUES ('tripay', 'callback', ?, ?, ?)`,
-      [JSON.stringify(req.body), signature, req.ip]
+    const [rows] = await pool.query(
+      'SELECT * FROM deposits WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
+      [userId, limit, offset]
+    );
+    const [[{ total }]] = await pool.query(
+      'SELECT COUNT(*) as total FROM deposits WHERE user_id = ?',
+      [userId]
     );
 
-    const valid = await gateway.verifySignature(req.body, signature);
-    if (!valid) {
-      await pool.query(
-        "UPDATE webhook_logs SET is_valid = 0, error_message = 'Invalid signature' WHERE gateway = 'tripay' ORDER BY id DESC LIMIT 1"
-      );
-      return res.status(400).json({ success: false, message: 'Invalid signature' });
-    }
-
-    await pool.query(
-      'UPDATE webhook_logs SET is_valid = 1 WHERE gateway = ? ORDER BY id DESC LIMIT 1',
-      ['tripay']
-    );
-
-    const parsed = gateway.parseWebhook(req.body);
-    await processDepositCallback(parsed);
-
-    res.json({ success: true });
+    res.json({ success: true, data: { deposits: rows, total, page, limit } });
   } catch (err) {
-    logger.error({ err }, 'Tripay webhook error');
-    res.status(500).json({ success: false });
+    logger.error({ err }, 'Get deposit history error');
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 }
 
-async function webhookQrispy(req, res) {
+async function webhookPakasir(req, res) {
   try {
-    const gateway = getGateway('qrispy');
-    const signature = req.headers['x-signature'] || req.headers['x-callback-signature'];
+    const gateway = getGateway('pakasir');
 
     await pool.query(
-      `INSERT INTO webhook_logs (gateway, event_type, payload, signature, ip_address)
-       VALUES ('qrispy', 'callback', ?, ?, ?)`,
-      [JSON.stringify(req.body), signature, req.ip]
+      `INSERT INTO webhook_logs (gateway, event_type, payload, ip_address)
+       VALUES ('pakasir', 'callback', ?, ?)`,
+      [JSON.stringify(req.body), req.ip]
     );
 
-    const valid = await gateway.verifySignature(req.body, signature);
-    if (!valid) {
+    const isValid = gateway.verifyWebhook(req.body);
+    if (!isValid) {
       await pool.query(
-        "UPDATE webhook_logs SET is_valid = 0, error_message = 'Invalid signature' WHERE gateway = 'qrispy' ORDER BY id DESC LIMIT 1"
+        "UPDATE webhook_logs SET is_valid = 0, error_message = 'Invalid webhook data' WHERE gateway = 'pakasir' ORDER BY id DESC LIMIT 1"
       );
-      return res.status(400).json({ success: false, message: 'Invalid signature' });
+      return res.status(400).json({ success: false, message: 'Invalid webhook' });
     }
 
     await pool.query(
-      'UPDATE webhook_logs SET is_valid = 1 WHERE gateway = ? ORDER BY id DESC LIMIT 1',
-      ['qrispy']
+      "UPDATE webhook_logs SET is_valid = 1 WHERE gateway = 'pakasir' ORDER BY id DESC LIMIT 1"
     );
 
     const parsed = gateway.parseWebhook(req.body);
@@ -155,7 +140,7 @@ async function webhookQrispy(req, res) {
 
     res.json({ success: true });
   } catch (err) {
-    logger.error({ err }, 'QRISPY webhook error');
+    logger.error({ err }, 'Pakasir webhook error');
     res.status(500).json({ success: false });
   }
 }
@@ -194,22 +179,24 @@ async function processDepositCallback(parsed) {
 
       await conn.query(
         `INSERT INTO transactions (user_id, type, amount, balance_before, balance_after, reference_type, reference_id, description)
-         VALUES (?, 'deposit', ?, ?, ?, 'deposit', ?, 'Deposit via QRIS')`,
+         VALUES (?, 'deposit', ?, ?, ?, 'deposit', ?, 'Deposit via QRIS Pakasir')`,
         [user.id, deposit.amount, balanceBefore, balanceAfter, deposit.id]
       );
 
       await conn.commit();
 
+      emitDepositUpdate(user.id, deposit.id, { status: 'paid', amount: parseFloat(deposit.amount) });
+      emitBalanceUpdate(user.id, balanceAfter);
       telegramService.notifyDepositSuccess(user.id, user.username, parseFloat(deposit.amount));
       affiliateService.processCommission(user.id, 'deposit', parseFloat(deposit.amount));
 
       await pool.query(
-        'UPDATE webhook_logs SET processed = 1 WHERE gateway IN (?,?) ORDER BY id DESC LIMIT 1',
-        ['tripay', 'qrispy']
+        "UPDATE webhook_logs SET processed = 1 WHERE gateway = 'pakasir' ORDER BY id DESC LIMIT 1"
       );
     } else if (['expired', 'failed'].includes(parsed.status)) {
       await conn.query('UPDATE deposits SET status = ? WHERE id = ?', [parsed.status, deposit.id]);
       await conn.commit();
+      emitDepositUpdate(deposit.user_id, deposit.id, { status: parsed.status });
     } else {
       await conn.rollback();
     }
@@ -222,4 +209,4 @@ async function processDepositCallback(parsed) {
   }
 }
 
-module.exports = { createDeposit, getDeposit, webhookTripay, webhookQrispy };
+module.exports = { createDeposit, getDeposit, getDepositHistory, webhookPakasir };

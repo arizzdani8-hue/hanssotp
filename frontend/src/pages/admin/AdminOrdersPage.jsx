@@ -36,7 +36,7 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Orders</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Orders</h1>
       <div className="mb-4">
         <select className="input-field w-auto" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
           <option value="">All Status</option>
@@ -51,34 +51,34 @@ export default function AdminOrdersPage() {
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left py-3 px-2">ID</th>
-              <th className="text-left py-3 px-2">User</th>
-              <th className="text-left py-3 px-2">Service</th>
-              <th className="text-left py-3 px-2">Provider</th>
-              <th className="text-left py-3 px-2">Phone</th>
-              <th className="text-left py-3 px-2">OTP</th>
-              <th className="text-left py-3 px-2">Price</th>
-              <th className="text-left py-3 px-2">Status</th>
-              <th className="text-left py-3 px-2">Time</th>
-              <th className="text-left py-3 px-2">Action</th>
+            <tr className="border-b border-gray-800/50">
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">ID</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">User</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Service</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Provider</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Phone</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">OTP</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Price</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Status</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Time</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Action</th>
             </tr>
           </thead>
           <tbody>
             {orders.map((o) => (
-              <tr key={o.id} className="border-b border-gray-100 dark:border-gray-700">
-                <td className="py-2 px-2">{o.id}</td>
-                <td className="py-2 px-2">{o.username}</td>
-                <td className="py-2 px-2">{o.service_name}</td>
-                <td className="py-2 px-2">{o.provider_name}</td>
-                <td className="py-2 px-2 font-mono text-xs">{o.phone_number}</td>
-                <td className="py-2 px-2 font-mono font-bold">{o.otp_code || '-'}</td>
-                <td className="py-2 px-2">Rp {Number(o.price).toLocaleString('id-ID')}</td>
-                <td className="py-2 px-2"><StatusBadge status={o.status} /></td>
-                <td className="py-2 px-2 text-xs">{new Date(o.created_at).toLocaleString('id-ID')}</td>
-                <td className="py-2 px-2">
+              <tr key={o.id} className="border-b border-gray-800/50 hover:bg-white/[0.02] transition-colors">
+                <td className="py-3 px-2 text-gray-400">{o.id}</td>
+                <td className="py-3 px-2 text-gray-200">{o.username}</td>
+                <td className="py-3 px-2 text-gray-200">{o.service_name}</td>
+                <td className="py-3 px-2 text-gray-300">{o.provider_name}</td>
+                <td className="py-3 px-2 font-mono text-xs text-primary-400">{o.phone_number}</td>
+                <td className="py-3 px-2 font-mono font-bold text-emerald-400">{o.otp_code || '-'}</td>
+                <td className="py-3 px-2 text-gray-200">Rp {Number(o.price).toLocaleString('id-ID')}</td>
+                <td className="py-3 px-2"><StatusBadge status={o.status} /></td>
+                <td className="py-3 px-2 text-xs text-gray-500">{new Date(o.created_at).toLocaleString('id-ID')}</td>
+                <td className="py-3 px-2">
                   {!o.refunded && ['received', 'waiting', 'cancelled', 'expired'].includes(o.status) && (
-                    <button onClick={() => refund(o.id)} className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700">Refund</button>
+                    <button onClick={() => refund(o.id)} className="text-xs px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-400 font-medium">Refund</button>
                   )}
                 </td>
               </tr>

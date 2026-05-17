@@ -10,7 +10,6 @@ export default function DepositPage() {
   const { t, lang } = useLang();
   const { refreshUser } = useAuth();
   const [amount, setAmount] = useState('');
-  const [gateway, setGateway] = useState('tripay');
   const [loading, setLoading] = useState(false);
   const [deposit, setDeposit] = useState(null);
 
@@ -30,7 +29,7 @@ export default function DepositPage() {
     if (!amt || amt < 10000) { toast.error('Minimum deposit Rp 10.000'); return; }
     setLoading(true);
     try {
-      const { data } = await api.post('/deposits/create', { amount: amt, gateway });
+      const { data } = await api.post('/deposits/create', { amount: amt });
       setDeposit(data.data);
       toast.success('Deposit dibuat! Silakan scan QRIS.');
     } catch (err) {
@@ -56,11 +55,14 @@ export default function DepositPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">{t('deposit_title')}</h1>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-white">{t('deposit_title')}</h1>
+        <p className="text-gray-500 text-sm mt-1">Top up saldo via QRIS</p>
+      </div>
 
       {!deposit ? (
         <div className="card">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="label">Jumlah (Rp)</label>
               <input type="number" className="input-field" value={amount} onChange={(e) => setAmount(e.target.value)}
@@ -69,38 +71,50 @@ export default function DepositPage() {
             <div className="flex flex-wrap gap-2">
               {presets.map((p) => (
                 <button key={p} type="button" onClick={() => setAmount(String(p))}
-                  className={`px-3 py-1.5 rounded-lg text-sm border ${amount === String(p) ? 'bg-primary-600 text-white border-primary-600' : 'border-gray-300 dark:border-gray-600'}`}>
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${amount === String(p) ? 'bg-primary-600/20 text-primary-400 border-primary-500/50' : 'border-gray-700/50 text-gray-400 hover:border-gray-600'}`}>
                   Rp {p.toLocaleString('id-ID')}
                 </button>
               ))}
             </div>
-            <div>
-              <label className="label">Payment Gateway</label>
-              <select className="input-field" value={gateway} onChange={(e) => setGateway(e.target.value)}>
-                <option value="tripay">Tripay (QRIS)</option>
-                <option value="qrispy">QRISPY (QRIS)</option>
-              </select>
-            </div>
-            <button type="submit" disabled={loading} className="btn-primary w-full">
+            <button type="submit" disabled={loading} className="btn-primary w-full !py-3">
               {loading ? t('loading') : 'Buat Deposit'}
             </button>
           </form>
         </div>
       ) : (
-        <div className="card text-center space-y-4">
-          <h3 className="text-lg font-semibold">Detail Deposit</h3>
-          <div className="space-y-2">
-            <p>Reference: <span className="font-mono">{deposit.reference}</span></p>
-            <p>Jumlah: <span className="font-bold">Rp {Number(deposit.amount).toLocaleString('id-ID')}</span></p>
-            {deposit.fee > 0 && <p>Fee: Rp {Number(deposit.fee).toLocaleString('id-ID')}</p>}
-            <p>Total: <span className="font-bold text-lg">Rp {Number(deposit.total_amount).toLocaleString('id-ID')}</span></p>
-            <p>Status: <StatusBadge status={deposit.status} /></p>
+        <div className="card text-center space-y-5">
+          <h3 className="text-lg font-semibold text-white">Detail Deposit</h3>
+          <div className="bg-dark-900/50 rounded-xl p-5 space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-400">Reference</span>
+              <span className="font-mono text-gray-200">{deposit.reference}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-400">Jumlah</span>
+              <span className="font-bold text-white">Rp {Number(deposit.amount).toLocaleString('id-ID')}</span>
+            </div>
+            {deposit.fee > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Fee</span>
+                <span className="text-gray-300">Rp {Number(deposit.fee).toLocaleString('id-ID')}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm border-t border-gray-800 pt-3">
+              <span className="text-gray-400">Total</span>
+              <span className="font-bold text-lg text-primary-400">Rp {Number(deposit.total_amount).toLocaleString('id-ID')}</span>
+            </div>
+            <div className="flex justify-between text-sm items-center">
+              <span className="text-gray-400">Status</span>
+              <StatusBadge status={deposit.status} />
+            </div>
           </div>
 
           {deposit.qr_url && deposit.status === 'pending' && (
             <div className="py-4">
-              <p className="text-sm text-gray-500 mb-2">Scan QRIS untuk membayar:</p>
-              <img src={deposit.qr_url} alt="QRIS" className="mx-auto max-w-xs rounded-lg" />
+              <p className="text-sm text-gray-500 mb-3">Scan QRIS untuk membayar:</p>
+              <div className="bg-white rounded-2xl p-4 inline-block">
+                <img src={deposit.qr_url} alt="QRIS" className="mx-auto max-w-xs rounded-lg" />
+              </div>
             </div>
           )}
 

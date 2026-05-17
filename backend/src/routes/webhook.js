@@ -3,7 +3,6 @@ const depositController = require('../controllers/depositController');
 
 const router = Router();
 
-router.post('/tripay', depositController.webhookTripay);
-router.post('/qrispy', depositController.webhookQrispy);
+router.post('/pakasir/webhook', depositController.webhookPakasir);
 
 module.exports = router;

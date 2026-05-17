@@ -21,7 +21,7 @@ export default function AdminDepositsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Deposits</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Deposits</h1>
       <div className="mb-4">
         <select className="input-field w-auto" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
           <option value="">All Status</option>
@@ -34,28 +34,28 @@ export default function AdminDepositsPage() {
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left py-3 px-2">ID</th>
-              <th className="text-left py-3 px-2">User</th>
-              <th className="text-left py-3 px-2">Reference</th>
-              <th className="text-left py-3 px-2">Amount</th>
-              <th className="text-left py-3 px-2">Fee</th>
-              <th className="text-left py-3 px-2">Total</th>
-              <th className="text-left py-3 px-2">Status</th>
-              <th className="text-left py-3 px-2">Time</th>
+            <tr className="border-b border-gray-800/50">
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">ID</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">User</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Reference</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Amount</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Fee</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Total</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Status</th>
+              <th className="text-left py-3 px-2 text-gray-400 font-medium text-xs uppercase tracking-wider">Time</th>
             </tr>
           </thead>
           <tbody>
             {deposits.map((d) => (
-              <tr key={d.id} className="border-b border-gray-100 dark:border-gray-700">
-                <td className="py-2 px-2">{d.id}</td>
-                <td className="py-2 px-2">{d.username}</td>
-                <td className="py-2 px-2 font-mono text-xs">{d.reference}</td>
-                <td className="py-2 px-2">Rp {Number(d.amount).toLocaleString('id-ID')}</td>
-                <td className="py-2 px-2">Rp {Number(d.fee).toLocaleString('id-ID')}</td>
-                <td className="py-2 px-2 font-semibold">Rp {Number(d.total_amount).toLocaleString('id-ID')}</td>
-                <td className="py-2 px-2"><StatusBadge status={d.status} /></td>
-                <td className="py-2 px-2 text-xs">{new Date(d.created_at).toLocaleString('id-ID')}</td>
+              <tr key={d.id} className="border-b border-gray-800/50 hover:bg-white/[0.02] transition-colors">
+                <td className="py-3 px-2 text-gray-400">{d.id}</td>
+                <td className="py-3 px-2 text-gray-200">{d.username}</td>
+                <td className="py-3 px-2 font-mono text-xs text-gray-400">{d.reference}</td>
+                <td className="py-3 px-2 text-gray-200">Rp {Number(d.amount).toLocaleString('id-ID')}</td>
+                <td className="py-3 px-2 text-gray-400">Rp {Number(d.fee).toLocaleString('id-ID')}</td>
+                <td className="py-3 px-2 font-semibold text-emerald-400">Rp {Number(d.total_amount).toLocaleString('id-ID')}</td>
+                <td className="py-3 px-2"><StatusBadge status={d.status} /></td>
+                <td className="py-3 px-2 text-xs text-gray-500">{new Date(d.created_at).toLocaleString('id-ID')}</td>
               </tr>
             ))}
           </tbody>

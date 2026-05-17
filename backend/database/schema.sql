@@ -219,18 +219,33 @@ CREATE TABLE otp_order_logs (
 ) ENGINE=InnoDB;
 
 -- ----------------------------
--- Payment Gateways
+-- Payment Settings (Pakasir)
 -- ----------------------------
-CREATE TABLE payment_gateways (
+CREATE TABLE payment_settings (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  slug VARCHAR(50) NOT NULL UNIQUE,
-  is_active TINYINT(1) NOT NULL DEFAULT 1,
-  config JSON DEFAULT NULL,
+  gateway_name VARCHAR(50) NOT NULL DEFAULT 'pakasir',
+  slug VARCHAR(100) DEFAULT NULL,
+  api_key VARCHAR(255) DEFAULT NULL,
+  callback_url VARCHAR(500) DEFAULT NULL,
+  mode ENUM('sandbox','production') NOT NULL DEFAULT 'sandbox',
   fee_percent DECIMAL(5,2) NOT NULL DEFAULT 0.00,
   fee_flat DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   min_amount DECIMAL(10,2) NOT NULL DEFAULT 10000.00,
   max_amount DECIMAL(10,2) NOT NULL DEFAULT 10000000.00,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ----------------------------
+-- Provider Settings (Hero SMS)
+-- ----------------------------
+CREATE TABLE provider_settings (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  provider_name VARCHAR(50) NOT NULL DEFAULT 'herosms',
+  api_key VARCHAR(255) DEFAULT NULL,
+  api_url VARCHAR(500) DEFAULT 'https://api.hero-sms.com',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -241,7 +256,7 @@ CREATE TABLE payment_gateways (
 CREATE TABLE deposits (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
-  gateway_id INT UNSIGNED DEFAULT NULL,
+  gateway VARCHAR(50) DEFAULT 'pakasir',
   reference VARCHAR(100) NOT NULL UNIQUE,
   merchant_ref VARCHAR(100) DEFAULT NULL,
   amount DECIMAL(15,2) NOT NULL,
@@ -261,7 +276,7 @@ CREATE TABLE deposits (
   INDEX idx_reference (reference),
   INDEX idx_merchant_ref (merchant_ref),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (gateway_id) REFERENCES payment_gateways(id) ON DELETE SET NULL
+  INDEX idx_gateway (gateway)
 ) ENGINE=InnoDB;
 
 -- ----------------------------
@@ -449,11 +464,11 @@ CREATE TABLE pricing_history (
 
 -- Default admin
 INSERT INTO admins (username, email, password, role) VALUES
-('admin', 'admin@hanssotp.com', '$2a$10$placeholder_hash_replace_on_setup', 'superadmin');
+('admin', 'admin@nyooapp.shop', '$2a$10$gz9FsF5ACAjkspwUmFVGRuoDPLz/2U2cLOXp.zmJ8eErI/qhgw6RG', 'superadmin');
 
 -- Default website settings
 INSERT INTO website_settings (`key`, value, type, description) VALUES
-('site_name', 'HanssOTP', 'text', 'Website name'),
+('site_name', 'NyooApp', 'text', 'Website name'),
 ('site_logo', '/images/logo.png', 'image', 'Website logo path'),
 ('site_description', 'Layanan Virtual Number & OTP Terpercaya', 'text', 'Website description'),
 ('dark_mode_default', 'false', 'boolean', 'Default dark mode'),
@@ -470,27 +485,26 @@ INSERT INTO website_settings (`key`, value, type, description) VALUES
 ('otp_poll_interval', '15', 'number', 'OTP polling interval in seconds'),
 ('max_active_orders_default', '5', 'number', 'Default max active orders per user'),
 ('max_orders_per_minute_default', '3', 'number', 'Default max orders per minute per user'),
-('api_key_5sim', '', 'text', '5sim.net API key'),
 ('api_key_herosms', '', 'text', 'Hero SMS API key'),
-('api_key_nokosmurah', '', 'text', 'Nokosmurah API key'),
-('api_key_tripay', '', 'text', 'Tripay API key'),
-('api_key_tripay_private', '', 'text', 'Tripay private/secret key'),
-('api_key_tripay_merchant', '', 'text', 'Tripay merchant code'),
-('api_key_qrispy', '', 'text', 'QRISPY API key'),
+('pakasir_slug', '', 'text', 'Pakasir project slug'),
+('pakasir_api_key', '', 'text', 'Pakasir API key'),
+('pakasir_mode', 'sandbox', 'text', 'Pakasir mode (sandbox/production)'),
+('pakasir_callback_url', 'https://nyooapp.shop/api/payment/pakasir/webhook', 'text', 'Pakasir callback URL'),
 ('auto_pricing_enabled', 'false', 'boolean', 'Enable auto pricing based on demand'),
 ('auto_pricing_demand_threshold', '100', 'number', 'Orders threshold for price increase'),
 ('auto_pricing_increase_percent', '5', 'number', 'Price increase percentage per threshold');
 
 -- Default OTP providers
 INSERT INTO otp_providers (name, slug, api_base_url, is_active, priority) VALUES
-('5sim.net', '5sim', 'https://5sim.net/v1', 1, 1),
-('Hero SMS', 'herosms', 'https://api.herosms.com', 1, 2),
-('Nokosmurah', 'nokosmurah', 'https://api.nokosmurah.com', 1, 3);
+('Hero SMS', 'herosms', 'https://api.hero-sms.com', 1, 1);
 
--- Default payment gateways
-INSERT INTO payment_gateways (name, slug, is_active, fee_percent, fee_flat, min_amount, max_amount) VALUES
-('Tripay', 'tripay', 1, 0.70, 0, 10000, 10000000),
-('QRISPY', 'qrispy', 1, 0.00, 0, 10000, 5000000);
+-- Default payment settings (Pakasir)
+INSERT INTO payment_settings (gateway_name, slug, api_key, callback_url, mode, fee_percent, fee_flat, min_amount, max_amount, is_active) VALUES
+('pakasir', '', '', 'https://nyooapp.shop/api/payment/pakasir/webhook', 'sandbox', 0.00, 0, 10000, 10000000, 1);
+
+-- Default provider settings (Hero SMS)
+INSERT INTO provider_settings (provider_name, api_key, api_url, is_active) VALUES
+('herosms', '', 'https://api.hero-sms.com', 1);
 
 -- Default countries
 INSERT INTO countries (name, code, phone_code, flag_emoji, is_active, sort_order) VALUES
@@ -522,3 +536,72 @@ INSERT INTO otp_services (name, slug, is_active, sort_order) VALUES
 ('Discord', 'discord', 1, 13),
 ('Netflix', 'netflix', 1, 14),
 ('Spotify', 'spotify', 1, 15);
+
+-- Default OTP pricing (Hero SMS provider, SMS-Activate compatible codes)
+-- provider_id=1 (Hero SMS), country codes and service codes follow SMS-Activate API format
+-- Indonesia (country_id=1)
+INSERT INTO otp_pricing (country_id, service_id, operator_id, provider_id, provider_service_code, provider_country_code, cost_price, markup_percent, sell_price, is_active) VALUES
+(1, 1, NULL, 1, 'wa', '6', 1500, 50, 2250, 1),
+(1, 2, NULL, 1, 'tg', '6', 1200, 50, 1800, 1),
+(1, 3, NULL, 1, 'go', '6', 1500, 50, 2250, 1),
+(1, 4, NULL, 1, 'fb', '6', 1200, 50, 1800, 1),
+(1, 5, NULL, 1, 'ig', '6', 1200, 50, 1800, 1),
+(1, 6, NULL, 1, 'tw', '6', 2000, 50, 3000, 1),
+(1, 7, NULL, 1, 'lf', '6', 1500, 50, 2250, 1),
+(1, 8, NULL, 1, 'pn', '6', 1500, 50, 2250, 1),
+(1, 9, NULL, 1, 'ua', '6', 1500, 50, 2250, 1),
+(1, 10, NULL, 1, 'me', '6', 1500, 50, 2250, 1),
+(1, 11, NULL, 1, 'ot', '6', 1500, 50, 2250, 1),
+(1, 12, NULL, 1, 'li', '6', 1200, 50, 1800, 1),
+(1, 13, NULL, 1, 'ds', '6', 1500, 50, 2250, 1),
+(1, 14, NULL, 1, 'nf', '6', 2000, 50, 3000, 1),
+(1, 15, NULL, 1, 'sp', '6', 2000, 50, 3000, 1),
+-- Russia (country_id=5)
+(5, 1, NULL, 1, 'wa', '0', 800, 50, 1200, 1),
+(5, 2, NULL, 1, 'tg', '0', 600, 50, 900, 1),
+(5, 3, NULL, 1, 'go', '0', 300, 50, 450, 1),
+(5, 4, NULL, 1, 'fb', '0', 400, 50, 600, 1),
+(5, 5, NULL, 1, 'ig', '0', 400, 50, 600, 1),
+(5, 7, NULL, 1, 'lf', '0', 400, 50, 600, 1),
+(5, 13, NULL, 1, 'ds', '0', 500, 50, 750, 1),
+-- India (country_id=4)
+(4, 1, NULL, 1, 'wa', '22', 500, 50, 750, 1),
+(4, 2, NULL, 1, 'tg', '22', 300, 50, 450, 1),
+(4, 3, NULL, 1, 'go', '22', 300, 50, 450, 1),
+(4, 5, NULL, 1, 'ig', '22', 400, 50, 600, 1),
+(4, 7, NULL, 1, 'lf', '22', 400, 50, 600, 1),
+-- United States (country_id=2)
+(2, 1, NULL, 1, 'wa', '187', 5000, 50, 7500, 1),
+(2, 3, NULL, 1, 'go', '187', 4000, 50, 6000, 1),
+(2, 4, NULL, 1, 'fb', '187', 4000, 50, 6000, 1),
+(2, 5, NULL, 1, 'ig', '187', 4000, 50, 6000, 1),
+(2, 13, NULL, 1, 'ds', '187', 5000, 50, 7500, 1),
+-- United Kingdom (country_id=3)
+(3, 1, NULL, 1, 'wa', '16', 4000, 50, 6000, 1),
+(3, 3, NULL, 1, 'go', '16', 3000, 50, 4500, 1),
+(3, 5, NULL, 1, 'ig', '16', 3000, 50, 4500, 1),
+-- Philippines (country_id=6)
+(6, 1, NULL, 1, 'wa', '4', 1000, 50, 1500, 1),
+(6, 2, NULL, 1, 'tg', '4', 800, 50, 1200, 1),
+(6, 3, NULL, 1, 'go', '4', 800, 50, 1200, 1),
+(6, 5, NULL, 1, 'ig', '4', 800, 50, 1200, 1),
+(6, 7, NULL, 1, 'lf', '4', 800, 50, 1200, 1),
+-- Malaysia (country_id=7)
+(7, 1, NULL, 1, 'wa', '7', 2000, 50, 3000, 1),
+(7, 2, NULL, 1, 'tg', '7', 1500, 50, 2250, 1),
+(7, 3, NULL, 1, 'go', '7', 1500, 50, 2250, 1),
+(7, 5, NULL, 1, 'ig', '7', 1500, 50, 2250, 1),
+-- Thailand (country_id=8)
+(8, 1, NULL, 1, 'wa', '52', 1500, 50, 2250, 1),
+(8, 2, NULL, 1, 'tg', '52', 1000, 50, 1500, 1),
+(8, 3, NULL, 1, 'go', '52', 1000, 50, 1500, 1),
+(8, 5, NULL, 1, 'ig', '52', 1000, 50, 1500, 1),
+-- Vietnam (country_id=9)
+(9, 1, NULL, 1, 'wa', '10', 1000, 50, 1500, 1),
+(9, 2, NULL, 1, 'tg', '10', 800, 50, 1200, 1),
+(9, 3, NULL, 1, 'go', '10', 800, 50, 1200, 1),
+(9, 5, NULL, 1, 'ig', '10', 800, 50, 1200, 1),
+-- Brazil (country_id=10)
+(10, 1, NULL, 1, 'wa', '73', 2000, 50, 3000, 1),
+(10, 3, NULL, 1, 'go', '73', 1500, 50, 2250, 1),
+(10, 5, NULL, 1, 'ig', '73', 1500, 50, 2250, 1);
