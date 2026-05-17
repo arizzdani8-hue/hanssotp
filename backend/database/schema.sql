@@ -464,7 +464,7 @@ CREATE TABLE pricing_history (
 
 -- Default admin
 INSERT INTO admins (username, email, password, role) VALUES
-('admin', 'admin@nyooapp.shop', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'superadmin');
+('admin', 'admin@nyooapp.shop', '$2a$10$gz9FsF5ACAjkspwUmFVGRuoDPLz/2U2cLOXp.zmJ8eErI/qhgw6RG', 'superadmin');
 
 -- Default website settings
 INSERT INTO website_settings (`key`, value, type, description) VALUES
@@ -536,3 +536,72 @@ INSERT INTO otp_services (name, slug, is_active, sort_order) VALUES
 ('Discord', 'discord', 1, 13),
 ('Netflix', 'netflix', 1, 14),
 ('Spotify', 'spotify', 1, 15);
+
+-- Default OTP pricing (Hero SMS provider, SMS-Activate compatible codes)
+-- provider_id=1 (Hero SMS), country codes and service codes follow SMS-Activate API format
+-- Indonesia (country_id=1)
+INSERT INTO otp_pricing (country_id, service_id, operator_id, provider_id, provider_service_code, provider_country_code, cost_price, markup_percent, sell_price, is_active) VALUES
+(1, 1, NULL, 1, 'wa', '6', 1500, 50, 2250, 1),
+(1, 2, NULL, 1, 'tg', '6', 1200, 50, 1800, 1),
+(1, 3, NULL, 1, 'go', '6', 1500, 50, 2250, 1),
+(1, 4, NULL, 1, 'fb', '6', 1200, 50, 1800, 1),
+(1, 5, NULL, 1, 'ig', '6', 1200, 50, 1800, 1),
+(1, 6, NULL, 1, 'tw', '6', 2000, 50, 3000, 1),
+(1, 7, NULL, 1, 'lf', '6', 1500, 50, 2250, 1),
+(1, 8, NULL, 1, 'pn', '6', 1500, 50, 2250, 1),
+(1, 9, NULL, 1, 'ua', '6', 1500, 50, 2250, 1),
+(1, 10, NULL, 1, 'me', '6', 1500, 50, 2250, 1),
+(1, 11, NULL, 1, 'ot', '6', 1500, 50, 2250, 1),
+(1, 12, NULL, 1, 'li', '6', 1200, 50, 1800, 1),
+(1, 13, NULL, 1, 'ds', '6', 1500, 50, 2250, 1),
+(1, 14, NULL, 1, 'nf', '6', 2000, 50, 3000, 1),
+(1, 15, NULL, 1, 'sp', '6', 2000, 50, 3000, 1),
+-- Russia (country_id=5)
+(5, 1, NULL, 1, 'wa', '0', 800, 50, 1200, 1),
+(5, 2, NULL, 1, 'tg', '0', 600, 50, 900, 1),
+(5, 3, NULL, 1, 'go', '0', 300, 50, 450, 1),
+(5, 4, NULL, 1, 'fb', '0', 400, 50, 600, 1),
+(5, 5, NULL, 1, 'ig', '0', 400, 50, 600, 1),
+(5, 7, NULL, 1, 'lf', '0', 400, 50, 600, 1),
+(5, 13, NULL, 1, 'ds', '0', 500, 50, 750, 1),
+-- India (country_id=4)
+(4, 1, NULL, 1, 'wa', '22', 500, 50, 750, 1),
+(4, 2, NULL, 1, 'tg', '22', 300, 50, 450, 1),
+(4, 3, NULL, 1, 'go', '22', 300, 50, 450, 1),
+(4, 5, NULL, 1, 'ig', '22', 400, 50, 600, 1),
+(4, 7, NULL, 1, 'lf', '22', 400, 50, 600, 1),
+-- United States (country_id=2)
+(2, 1, NULL, 1, 'wa', '187', 5000, 50, 7500, 1),
+(2, 3, NULL, 1, 'go', '187', 4000, 50, 6000, 1),
+(2, 4, NULL, 1, 'fb', '187', 4000, 50, 6000, 1),
+(2, 5, NULL, 1, 'ig', '187', 4000, 50, 6000, 1),
+(2, 13, NULL, 1, 'ds', '187', 5000, 50, 7500, 1),
+-- United Kingdom (country_id=3)
+(3, 1, NULL, 1, 'wa', '16', 4000, 50, 6000, 1),
+(3, 3, NULL, 1, 'go', '16', 3000, 50, 4500, 1),
+(3, 5, NULL, 1, 'ig', '16', 3000, 50, 4500, 1),
+-- Philippines (country_id=6)
+(6, 1, NULL, 1, 'wa', '4', 1000, 50, 1500, 1),
+(6, 2, NULL, 1, 'tg', '4', 800, 50, 1200, 1),
+(6, 3, NULL, 1, 'go', '4', 800, 50, 1200, 1),
+(6, 5, NULL, 1, 'ig', '4', 800, 50, 1200, 1),
+(6, 7, NULL, 1, 'lf', '4', 800, 50, 1200, 1),
+-- Malaysia (country_id=7)
+(7, 1, NULL, 1, 'wa', '7', 2000, 50, 3000, 1),
+(7, 2, NULL, 1, 'tg', '7', 1500, 50, 2250, 1),
+(7, 3, NULL, 1, 'go', '7', 1500, 50, 2250, 1),
+(7, 5, NULL, 1, 'ig', '7', 1500, 50, 2250, 1),
+-- Thailand (country_id=8)
+(8, 1, NULL, 1, 'wa', '52', 1500, 50, 2250, 1),
+(8, 2, NULL, 1, 'tg', '52', 1000, 50, 1500, 1),
+(8, 3, NULL, 1, 'go', '52', 1000, 50, 1500, 1),
+(8, 5, NULL, 1, 'ig', '52', 1000, 50, 1500, 1),
+-- Vietnam (country_id=9)
+(9, 1, NULL, 1, 'wa', '10', 1000, 50, 1500, 1),
+(9, 2, NULL, 1, 'tg', '10', 800, 50, 1200, 1),
+(9, 3, NULL, 1, 'go', '10', 800, 50, 1200, 1),
+(9, 5, NULL, 1, 'ig', '10', 800, 50, 1200, 1),
+-- Brazil (country_id=10)
+(10, 1, NULL, 1, 'wa', '73', 2000, 50, 3000, 1),
+(10, 3, NULL, 1, 'go', '73', 1500, 50, 2250, 1),
+(10, 5, NULL, 1, 'ig', '73', 1500, 50, 2250, 1);

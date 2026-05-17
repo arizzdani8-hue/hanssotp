@@ -28,20 +28,31 @@ class PakasirGateway extends BaseGateway {
     }
     try {
       const resp = await axios.post(
-        `${PAKASIR_BASE_URL}/api/v1/transaction/create`,
-        { project: slug, order_id: reference, amount: parseInt(amount, 10), sel_key: apiKey },
+        `${PAKASIR_BASE_URL}/api/transactioncreate/qris`,
+        { project: slug, order_id: reference, amount: parseInt(amount, 10), api_key: apiKey },
         { headers: { 'Content-Type': 'application/json' }, timeout: 30000 }
       );
       const data = resp.data;
-      if (!data.success && !data.payment_url) {
-        throw new Error(data.message || 'Pakasir payment creation failed');
+      const payment = data.payment;
+      if (!payment) {
+        throw new Error(data.message || 'Pakasir: gagal membuat transaksi');
       }
+
+      const qrString = payment.payment_number || '';
+      const qrImageUrl = qrString
+        ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrString)}`
+        : null;
+
+      const checkoutUrl = `${PAKASIR_BASE_URL}/pay/${slug}/${parseInt(amount, 10)}?order_id=${encodeURIComponent(reference)}&qris_only=1`;
+
       return {
         reference,
-        merchantRef: data.order_id || reference,
-        qrUrl: data.qr_url || data.payment_url || null,
-        checkoutUrl: data.payment_url || `${PAKASIR_BASE_URL}/pay/${slug}/${reference}`,
-        expiresAt: null,
+        merchantRef: payment.order_id || reference,
+        qrUrl: qrImageUrl,
+        qrString,
+        checkoutUrl,
+        totalPayment: payment.total_payment || parseInt(amount, 10),
+        expiresAt: payment.expired_at || null,
         rawResponse: data,
       };
     } catch (err) {
@@ -50,11 +61,11 @@ class PakasirGateway extends BaseGateway {
     }
   }
 
-  async checkTransaction(reference) {
+  async checkTransaction(reference, amount) {
     const { slug, apiKey } = await this._getConfig();
     try {
-      const resp = await axios.get(`${PAKASIR_BASE_URL}/api/v1/transaction/detail/${reference}`, {
-        params: { project: slug, sel_key: apiKey },
+      const resp = await axios.get(`${PAKASIR_BASE_URL}/api/transactiondetail`, {
+        params: { project: slug, order_id: reference, amount, api_key: apiKey },
         timeout: 15000,
       });
       return resp.data;
@@ -64,22 +75,52 @@ class PakasirGateway extends BaseGateway {
     }
   }
 
+  async simulatePayment(reference, amount) {
+    const { slug, apiKey } = await this._getConfig();
+    try {
+      const resp = await axios.post(
+        `${PAKASIR_BASE_URL}/api/paymentsimulation`,
+        { project: slug, order_id: reference, amount: parseInt(amount, 10), api_key: apiKey },
+        { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
+      );
+      return resp.data;
+    } catch (err) {
+      logger.error({ err: err.message }, 'Pakasir simulatePayment failed');
+      return null;
+    }
+  }
+
+  async cancelTransaction(reference, amount) {
+    const { slug, apiKey } = await this._getConfig();
+    try {
+      const resp = await axios.post(
+        `${PAKASIR_BASE_URL}/api/transactioncancel`,
+        { project: slug, order_id: reference, amount: parseInt(amount, 10), api_key: apiKey },
+        { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
+      );
+      return resp.data;
+    } catch (err) {
+      logger.error({ err: err.message }, 'Pakasir cancelTransaction failed');
+      return null;
+    }
+  }
+
   verifyWebhook(body) {
-    return !!(body && body.amount && body.order_id);
+    return !!(body && body.amount && body.order_id && body.status && body.project);
   }
 
   parseWebhook(body) {
     const status =
-      body.status === 'COMPLETED' || body.status === 'paid' ? 'paid'
-      : body.status === 'EXPIRED' || body.status === 'expired' ? 'expired'
-      : body.status === 'FAILED' || body.status === 'failed' ? 'failed'
+      body.status === 'completed' ? 'paid'
+      : body.status === 'expired' ? 'expired'
+      : body.status === 'failed' ? 'failed'
       : 'pending';
     return {
       reference: body.order_id,
-      gatewayReference: body.trx_id || body.order_id,
+      gatewayReference: body.order_id,
       status,
       amount: parseFloat(body.amount) || 0,
-      paymentMethod: body.payment_method || 'QRIS',
+      paymentMethod: body.payment_method || 'qris',
     };
   }
 }
