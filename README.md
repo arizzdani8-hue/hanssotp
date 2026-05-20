@@ -1,287 +1,115 @@
-# HanssOTP - Virtual Number & OTP Service
+# OTP Service - Platform Jasa OTP & Virtual Number
 
-Fullstack website jasa OTP / virtual number.
-
-## Tech Stack
-
-- **Frontend**: React + Vite + Tailwind CSS
-- **Backend**: Node.js + Express
-- **Database**: MySQL 8.0+
-- **Realtime**: Socket.IO
-- **Auth**: JWT
-- **Deploy**: aaPanel compatible
+Platform profesional berbasis Laravel untuk bisnis jasa OTP dan virtual number. Siap deploy ke shared hosting, cPanel, aaPanel, atau VPS.
 
 ## Features
 
-### User
-- Register, Login, Logout (JWT)
-- Dashboard (saldo, order, deposit, riwayat)
-- Deposit via QRIS (Tripay / QRISPY)
-- Order OTP (pilih negara, layanan, operator)
-- Realtime OTP via Socket.IO
-- Auto cancel/refund jika OTP tidak masuk dalam 15 menit
-- Riwayat order & transaksi lengkap
-- Multi bahasa (ID/EN)
-- Dark mode
+### User Features
+- Register, Login, Logout + WhatsApp OTP Login
+- Dashboard User Responsive (Dark/Light Mode)
+- Sistem Saldo + Deposit via DOMPETX & Pakasir QRIS
+- Order Nomor OTP (pilih negara, layanan, operator)
+- Auto check SMS/OTP + Tampilkan kode OTP
+- Cancel Order + Auto cancel + Refund otomatis
+- Riwayat Order, Deposit, Transaksi
+- Voucher / Promo Code + Flash Sale
+- API Reseller dengan HMAC Signature
+- Dokumentasi API lengkap
 
-### Admin
-- Dashboard statistik (users, deposits, orders, profit)
-- CRUD users (ban/unban, adjust saldo)
-- Kelola layanan OTP (negara, service, operator, harga, markup)
-- Monitoring deposit & order
-- Refund manual
-- Settings website & API keys
-- Activity logs
+### Admin Panel (Filament)
+- Dashboard statistik (orders, profit, deposit)
+- Manajemen User, Saldo, Deposit, Order
+- Manajemen Negara, Layanan, Operator, Provider
+- Multi Provider + Auto Fallback
+- Pricing (Basic/Gold/Platinum) + Markup otomatis
+- Promo, Flash Sale, Voucher
+- Payment Method management
+- Artikel, Slider, Popup, Custom Page
+- Webhook Logs, API Request Logs, Activity Logs
+- Setting lengkap (branding, SEO, payment, WA gateway)
+- Export Orders ke Excel
 
-### Reseller API
-- Public API dengan API key
-- Endpoints: balance, services, order, check, cancel
-- Rate limiting per API key
+### Security
+- Laravel Sanctum
+- HMAC Signature API
+- Cloudflare Turnstile
+- Rate Limiting
+- Anti Duplicate Callback
+- Validasi Webhook signature
 
-### Affiliate
-- Kode referral per user
-- Komisi otomatis dari deposit & order referral
+## Tech Stack
+- **Backend**: Laravel 11
+- **Admin Panel**: Filament 3
+- **Database**: MySQL
+- **Frontend**: Blade + Tailwind CSS + Alpine.js
+- **Payment**: DOMPETX, Pakasir QRIS
+- **WhatsApp**: Fonnte / MPWA
+- **OTP Providers**: 5sim.net, Hero SMS, Ditznesia, Custom
 
-### OTP Providers (Adapter Pattern)
-- 5sim.net
-- Hero SMS
-- Nokosmurah
+## Quick Start
 
-### Payment Gateways (Adapter Pattern)
-- Tripay (QRIS)
-- QRISPY (QRIS)
+### Requirements
+- PHP >= 8.1
+- MySQL 5.7+ / MariaDB 10.3+
+- Composer
 
----
-
-## Instalasi di VPS (aaPanel)
-
-### 1. Requirements
-- Node.js 18+ (install via aaPanel App Store)
-- MySQL 8.0+ (install via aaPanel App Store)
-- Nginx (install via aaPanel App Store)
-
-### 2. Clone Repository
-
+### Installation
 ```bash
-cd /www/wwwroot
-git clone https://github.com/yourusername/hanssotp.git
-cd hanssotp
-```
-
-### 3. Setup Database
-
-```bash
-mysql -u root -p < backend/database/schema.sql
-```
-
-Buat user MySQL:
-```sql
-CREATE USER 'hanssotp'@'localhost' IDENTIFIED BY 'your_password';
-GRANT ALL PRIVILEGES ON hanssotp.* TO 'hanssotp'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-Set password admin (generate hash):
-```bash
-cd backend && node -e "const b=require('bcryptjs');b.hash('admin123',10).then(h=>console.log(h))"
-```
-Update hash di database:
-```sql
-UPDATE admins SET password = 'HASH_RESULT' WHERE username = 'admin';
-```
-
-### 4. Setup Backend
-
-```bash
-cd /www/wwwroot/hanssotp/backend
+# Clone / extract project
+composer install --optimize-autoloader --no-dev
 cp .env.example .env
-# Edit .env dengan konfigurasi Anda
-npm install
+
+# Buka web installer
+# https://yourdomain.com/install
+
+# Atau setup manual:
+php artisan key:generate
+php artisan migrate --force
+php artisan db:seed
+php artisan storage:link
 ```
 
-### 5. Setup Frontend
-
+### Cron Job (WAJIB)
 ```bash
-cd /www/wwwroot/hanssotp/frontend
-cp .env.example .env
-# Edit VITE_API_URL jika perlu
-npm install
-npm run build
+* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-### 6. Jalankan Backend
-
-Menggunakan PM2 (recommended):
+### Queue Worker
 ```bash
-npm install -g pm2
-cd /www/wwwroot/hanssotp/backend
-pm2 start server.js --name hanssotp
-pm2 save
-pm2 startup
+php artisan queue:work --sleep=3 --tries=3
 ```
 
-### 7. Nginx Reverse Proxy
+## Default Admin
+- Email: admin@example.com
+- Password: password
 
-Buat website di aaPanel, lalu edit konfigurasi Nginx:
+⚠️ **Ganti password admin setelah install!**
 
-```nginx
-server {
-    listen 80;
-    server_name yourdomain.com www.yourdomain.com;
+## Dokumentasi Lengkap
+- [Install di Shared Hosting/cPanel](docs/INSTALL-HOSTING.md)
+- [Install di aaPanel/VPS](docs/INSTALL-AAPANEL.md)
+- [Webhook DOMPETX](docs/WEBHOOK-DOMPETX.md)
+- [Callback Pakasir](docs/CALLBACK-PAKASIR.md)
+- [Integrasi Provider OTP](docs/INTEGRASI-PROVIDER-OTP.md)
+- [Build & Deploy Production](docs/DEPLOY-PRODUCTION.md)
 
-    # Frontend static files
-    root /www/wwwroot/hanssotp/frontend/dist;
-    index index.html;
+## Branding
+Semua branding bisa diganti dari Admin Panel:
+- Nama website, tagline
+- Logo, favicon
+- Warna tema
+- Footer
+- SEO metadata
 
-    # API reverse proxy
-    location /api/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # WebSocket reverse proxy
-    location /socket.io/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    # Webhook endpoints (no rate limit from Nginx)
-    location /api/webhooks/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # SPA fallback
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-}
-```
-
-### 8. SSL (aaPanel)
-Gunakan fitur SSL di aaPanel untuk mengaktifkan HTTPS (Let's Encrypt).
-
-### 9. Cronjobs
-Cronjob sudah built-in di server.js menggunakan node-cron:
-- **Poll OTP**: setiap 15 detik
-- **Auto cancel expired orders**: setiap 1 menit
-- **Auto pricing**: setiap 1 jam
-
----
-
-## Environment Variables
-
-### Backend (.env)
-
-| Variable | Description |
-|----------|-------------|
-| PORT | Server port (default: 5000) |
-| DB_HOST | MySQL host |
-| DB_PORT | MySQL port |
-| DB_USER | MySQL user |
-| DB_PASS | MySQL password |
-| DB_NAME | Database name |
-| JWT_SECRET | JWT secret for users |
-| JWT_ADMIN_SECRET | JWT secret for admins |
-| CORS_ORIGIN | Allowed CORS origin |
-| TRIPAY_API_KEY | Tripay API key |
-| TRIPAY_PRIVATE_KEY | Tripay private key |
-| TRIPAY_MERCHANT_CODE | Tripay merchant code |
-| QRISPY_API_KEY | QRISPY API key |
-| FIVESIM_API_KEY | 5sim.net API key |
-| HEROSMS_API_KEY | Hero SMS API key |
-| NOKOSMURAH_API_KEY | Nokosmurah API key |
-| TELEGRAM_BOT_TOKEN | Telegram bot token |
-| TELEGRAM_ADMIN_CHAT_ID | Admin Telegram chat ID |
-
-### Frontend (.env)
-
-| Variable | Description |
-|----------|-------------|
-| VITE_API_URL | Backend API URL |
-| VITE_WS_URL | WebSocket URL |
-
----
-
-## Project Structure
-
-```
-hanssotp/
-├── backend/
-│   ├── src/
-│   │   ├── config/        # Database & app config
-│   │   ├── controllers/   # Route handlers
-│   │   ├── middleware/     # Auth, rate limit, validation
-│   │   ├── routes/         # Express routes
-│   │   ├── services/       # Business logic
-│   │   ├── providers/      # OTP provider adapters
-│   │   ├── payments/       # Payment gateway adapters
-│   │   ├── websocket/      # Socket.IO setup
-│   │   ├── utils/          # Helpers & logger
-│   │   └── jobs/           # Cron jobs
-│   ├── database/schema.sql
-│   ├── .env.example
-│   ├── package.json
-│   └── server.js
-├── frontend/
-│   ├── src/
-│   │   ├── components/     # Reusable components
-│   │   ├── pages/          # Page components
-│   │   ├── layouts/        # Layout components
-│   │   ├── services/       # API & socket services
-│   │   ├── hooks/          # Custom hooks
-│   │   ├── context/        # React contexts
-│   │   └── App.jsx
-│   ├── .env.example
-│   ├── package.json
-│   └── vite.config.js
-└── README.md
-```
-
-## Default Admin Login
-- Username: `admin`
-- Password: set manually (see step 3)
-
-## API Documentation
-
-See `frontend/src/pages/ResellerApiPage.jsx` for reseller API endpoints.
-
-### Main API Endpoints
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | /api/auth/register | - | Register user |
-| POST | /api/auth/login | - | Login user |
-| GET | /api/auth/me | User | Get current user |
-| GET | /api/user/dashboard | User | Dashboard data |
-| POST | /api/deposits/create | User | Create deposit |
-| GET | /api/otp/countries | - | List countries |
-| GET | /api/otp/services | - | List services |
-| POST | /api/otp/order | User | Create OTP order |
-| POST | /api/otp/order/:id/cancel | User | Cancel order |
-| POST | /api/admin/login | - | Admin login |
-| GET | /api/admin/dashboard | Admin | Admin dashboard |
-| GET | /api/reseller/balance | API Key | Reseller balance |
-| POST | /api/reseller/order | API Key | Reseller order |
+## API Reseller
+Dokumentasi API tersedia di `/api-docs`. Endpoint:
+- `GET /api/v1/balance` - Cek saldo
+- `GET /api/v1/countries` - Daftar negara
+- `GET /api/v1/services` - Daftar layanan
+- `GET /api/v1/pricing` - Cek harga
+- `POST /api/v1/order` - Order OTP
+- `GET /api/v1/order/{id}` - Cek status
+- `POST /api/v1/order/{id}/cancel` - Cancel order
 
 ## License
-
-MIT
+Proprietary - All rights reserved.
